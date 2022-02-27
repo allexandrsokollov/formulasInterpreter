@@ -1,6 +1,6 @@
 package foormulasInterpreter;
 
-public class Value {
+public class Value extends Node{
     private int value;
 
     public Value(int value) {
