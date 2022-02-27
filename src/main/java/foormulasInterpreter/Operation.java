@@ -1,9 +1,15 @@
 package foormulasInterpreter;
 
-public abstract class Operation extends Node {
+public class Operation extends Node {
     private char operationSign;
     private double leftValue;
     private double rightValue;
+
+    public Operation(Operation operation) {
+        setOperationSign(operation.getOperationSign());
+        setLeftNode(operation.getLeftNode());
+        setRightNode(operation.getRightNode());
+    }
 
     public Operation() {
     }
@@ -28,7 +34,9 @@ public abstract class Operation extends Node {
         }
     }
 
-    public abstract double executeAndGetValue();
+    public double executeAndGetValue() {
+        return Double.MIN_VALUE;
+    }
 
     public void setOperationSign(char operationSign) {
         this.operationSign = operationSign;
