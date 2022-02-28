@@ -1,8 +1,9 @@
 package foormulasInterpreter;
 
-public abstract class Node {
+abstract class Node {
     private Node rightNode;
     private Node leftNode;
+
 
     public Node getRightNode() {
         return rightNode;

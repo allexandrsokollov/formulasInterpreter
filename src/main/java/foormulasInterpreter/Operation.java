@@ -7,8 +7,8 @@ public class Operation extends Node {
 
     public Operation(Operation operation) {
         setOperationSign(operation.getOperationSign());
-        setLeftNode(operation.getLeftNode());
         setRightNode(operation.getRightNode());
+        setLeftNode(operation.getLeftNode());
     }
 
     public Operation() {
@@ -33,6 +33,19 @@ public class Operation extends Node {
             rightValue = operation.executeAndGetValue();
         }
     }
+
+    protected boolean tryToPinToNode(Node nodeToPin) {
+        if (getLeftNode() == null) {
+            setLeftNode(nodeToPin);
+        } else if (getRightNode() == null) {
+            setRightNode(nodeToPin);
+        } else {
+            return false;
+        }
+
+        return true;
+    }
+
 
     public double executeAndGetValue() {
         return Double.MIN_VALUE;
