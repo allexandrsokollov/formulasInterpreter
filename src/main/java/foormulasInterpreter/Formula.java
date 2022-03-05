@@ -2,6 +2,17 @@ package foormulasInterpreter;
 
 import java.util.HashSet;
 import java.util.Set;
+/*
+
+got to: 
+* write next operation checker
+* Implement addition
+* Implement division
+* Implement subtraction
+* write Executor Interface, implement node execution
+* check out 2+2*2, 2*2+2+2*2 etc.
+
+*/
 
 public class Formula {
     private Node mainNode;
@@ -32,7 +43,7 @@ public class Formula {
                     }
                 }
 
-            } else if (formula.charAt(i) >= 48 && formula.charAt(i) <= 57) {
+            } else if (formula.charAt(i) >= '0' && formula.charAt(i) <= '9') {
                 String tempValue = getValue(formula, i);
                 i += tempValue.length();
                 tempNode = new Value(Integer.parseInt(tempValue));
