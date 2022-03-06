@@ -13,5 +13,9 @@ public class Variable extends Value{
         return varName;
     }
 
+    public int getVarLength() {
+        return varName.length();
+    }
+
 
 }

@@ -20,4 +20,5 @@ public abstract class Node {
     public void setLeftNode(Node leftNode) {
         this.leftNode = leftNode;
     }
+
 }
