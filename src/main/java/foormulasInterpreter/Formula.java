@@ -1,23 +1,9 @@
 package foormulasInterpreter;
 
-import foormulasInterpreter.Operations.Addition;
-import foormulasInterpreter.Operations.Division;
-import foormulasInterpreter.Operations.Multiplication;
-import foormulasInterpreter.Operations.Operation;
+import foormulasInterpreter.Operations.*;
 
 import java.util.HashSet;
 import java.util.Set;
-/*
-
-got to: 
-* write next operation checker DONE
-* Implement addition
-* Implement division
-* Implement subtraction
-* write Executor Interface, implement node execution
-* check out 2+2*2, 2*2+2+2*2 etc. DONE. WORKS CORRECTLY
-
-*/
 
 public class Formula {
     private Node mainNode;
@@ -63,54 +49,62 @@ public class Formula {
 
             }
 
-            if (i < formula.length() && formula.charAt(i) == '*') {
-                Multiplication multiplication = new Multiplication();
+            if (i < formula.length() && formula.charAt(i) == '*' || formula.charAt(i) == '/') {
+                Operation operation;
+
+                if (formula.charAt(i) == '*') {
+                    operation = new Multiplication();
+                } else {
+                    operation = new Division();
+                }
 
                 if (node != null) {
                     Node tmp = node;
-                    multiplication.tryToPinToNode(tmp);
-                    node = multiplication;
+                    operation.tryToPinToNode(tmp);
+                    node = operation;
 
                 } else {
-                    node = multiplication;
+                    node = operation;
                     node.tryToPinToNode(tempNode);
                 }
 
-            } else if (i < formula.length() && formula.charAt(i) == '/') {
-                Division division = new Division();
+            } else if (formula.charAt(i) == '+' || formula.charAt(i) == '-') {
+                Operation tempOperation;
 
-                if (node != null) {
-                    Node tmp = node;
-                    division.tryToPinToNode(tmp);
-                    node = division;
-
+                if (formula.charAt(i) == '+') {
+                    tempOperation = new Addition();
                 } else {
-                    node = division;
-                    node.tryToPinToNode(tempNode);
+                    tempOperation = new Subtraction();
                 }
-
-            } else if (i < formula.length() && formula.charAt(i) == '+') {
-                Addition addition = new Addition();
 
                 if (node != null) {
                     Node temp = node;
-                    addition.tryToPinToNode(temp);
-                    node = addition;
+                    tempOperation.tryToPinToNode(temp);
+                    node = tempOperation;
                 } else {
-                    node = addition;
+                    node = tempOperation;
                     node.tryToPinToNode(tempNode);
                 }
 
-                if (getNextOperation(formula, i) == '*') {
+                char nextOperationSign = getNextOperation(formula, i);
+
+                if (nextOperationSign == '*' || nextOperationSign == '/') {
+
                     Value temp = getNextValue(formula, ++i);
                     i += temp.valueLength;
 
-                    Multiplication multiplication = new Multiplication();
-                    multiplication.tryToPinToNode(temp);
+                    Operation operation;
+                    if (nextOperationSign == '*') {
+                        operation = new Multiplication();
+                    } else {
+                        operation = new Division();
+                    }
 
-                    multiplication.tryToPinToNode(getNextValue(formula, ++i));
+                    operation.tryToPinToNode(temp);
+                    operation.tryToPinToNode(getNextValue(formula, ++i));
+
                     i += temp.valueLength;
-                    node.tryToPinToNode(multiplication);
+                    node.tryToPinToNode(operation);
 
                 }
             }
