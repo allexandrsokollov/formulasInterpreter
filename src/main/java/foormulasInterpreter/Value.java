@@ -1,5 +1,7 @@
 package foormulasInterpreter;
 
+import java.util.Objects;
+
 public class Value extends Node{
     private int value;
     private final int valueLength;
@@ -20,4 +22,6 @@ public class Value extends Node{
     public void setValue(int value) {
         this.value = value;
     }
+
+
 }

@@ -47,6 +47,7 @@ public class Formula {
 
             } else if (formula.charAt(i) >= 'a' && formula.charAt(i) <= 'z') {
                 tempNode = getNextVariable(formula, i);
+                variables.add((Variable) tempNode);
                 i += ((Variable) tempNode).getVarLength();
 
                 if (node != null) {
@@ -100,6 +101,7 @@ public class Formula {
 
                     if (isNextNodeWillVar(formula, i)) {
                         temp = getNextVariable(formula, ++i);
+                        variables.add((Variable) temp);
                         i += ((Variable) temp).getVarLength();
                     } else {
                         temp = getNextValue(formula, ++i);
@@ -116,7 +118,9 @@ public class Formula {
                     operation.tryToPinToNode(temp);
 
                     if (isNextNodeWillVar(formula, i)) {
-                        operation.tryToPinToNode(getNextVariable(formula, ++i));
+                        Variable var = getNextVariable(formula, ++i);
+                        operation.tryToPinToNode(var);
+                        variables.add(var);
                         i += ((Variable) temp).getVarLength();
                     } else {
                         operation.tryToPinToNode(getNextValue(formula, ++i));
@@ -133,7 +137,14 @@ public class Formula {
         return node;
     }
 
-    public double getResult() {
+
+
+    public double execute(int ... values) {
+
+        int i = 0;
+        for (Variable var: variables) {
+            var.setValue(values[i++]);
+        }
         return ((Operation) mainNode).executeAndGetValue();
     }
 
