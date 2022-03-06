@@ -12,4 +12,6 @@ public class Variable extends Value{
     public String getVarName() {
         return varName;
     }
+
+
 }

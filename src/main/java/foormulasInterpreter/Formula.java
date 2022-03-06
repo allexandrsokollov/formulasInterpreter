@@ -1,5 +1,10 @@
 package foormulasInterpreter;
 
+import foormulasInterpreter.Operations.Addition;
+import foormulasInterpreter.Operations.Division;
+import foormulasInterpreter.Operations.Multiplication;
+import foormulasInterpreter.Operations.Operation;
+
 import java.util.HashSet;
 import java.util.Set;
 /*
@@ -27,6 +32,7 @@ public class Formula {
     }
 
     private Operation getOperationFromBraces(String formula) {
+        formula = getStringWithoutSpaces(formula);
         Operation node = null;
         Node tempNode = null;
 
@@ -70,6 +76,19 @@ public class Formula {
                     node.tryToPinToNode(tempNode);
                 }
 
+            } else if (i < formula.length() && formula.charAt(i) == '/') {
+                Division division = new Division();
+
+                if (node != null) {
+                    Node tmp = node;
+                    division.tryToPinToNode(tmp);
+                    node = division;
+
+                } else {
+                    node = division;
+                    node.tryToPinToNode(tempNode);
+                }
+
             } else if (i < formula.length() && formula.charAt(i) == '+') {
                 Addition addition = new Addition();
 
@@ -83,25 +102,35 @@ public class Formula {
                 }
 
                 if (getNextOperation(formula, i) == '*') {
-                    Node temp = getNextValue(formula, ++i);
-                    i += ((Value) temp).valueLength;
+                    Value temp = getNextValue(formula, ++i);
+                    i += temp.valueLength;
 
                     Multiplication multiplication = new Multiplication();
                     multiplication.tryToPinToNode(temp);
 
                     multiplication.tryToPinToNode(getNextValue(formula, ++i));
-                    i += ((Value) temp).valueLength;
+                    i += temp.valueLength;
                     node.tryToPinToNode(multiplication);
 
                 }
-
-
-
-
             }
-
         }
         return node;
+    }
+
+    public double getResult() {
+        return ((Operation) mainNode).executeAndGetValue();
+    }
+
+    private String getStringWithoutSpaces(String string) {
+        StringBuilder sb = new StringBuilder();
+
+        for (char ch : string.toCharArray()) {
+            if (ch != ' ') {
+                sb.append(ch);
+            }
+        }
+        return sb.toString();
     }
 
     /**

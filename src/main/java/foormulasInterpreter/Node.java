@@ -1,6 +1,6 @@
 package foormulasInterpreter;
 
-abstract class Node {
+public abstract class Node {
     private Node rightNode;
     private Node leftNode;
 
