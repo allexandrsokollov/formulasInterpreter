@@ -1,14 +1,12 @@
 package foormulasInterpreter;
 
-import java.util.Objects;
 
 public class Value extends Node{
     private int value;
-    private final int valueLength;
+    private int valueLength;
 
     public Value(int value) {
-        this.value = value;
-        valueLength = String.valueOf(value).length();
+       setValue(value);
     }
 
     public int getValueLength() {
@@ -21,6 +19,7 @@ public class Value extends Node{
 
     public void setValue(int value) {
         this.value = value;
+        this.valueLength = String.valueOf(value).length();
     }
 
 

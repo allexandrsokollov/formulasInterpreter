@@ -3,14 +3,15 @@ package foormulasInterpreter;
 import foormulasInterpreter.Operations.*;
 
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class Formula {
     private Node mainNode;
-    private Set<Variable> variables;
+    private final Set<Variable> variables;
 
     public Formula() {
-        variables = new HashSet<>();
+        variables = new LinkedHashSet<>();
     }
 
     public void prepare(String formula) {
@@ -57,7 +58,11 @@ public class Formula {
                 }
             }
 
-            if (i < formula.length() && formula.charAt(i) == '*' || formula.charAt(i) == '/') {
+            if (i >= formula.length()) {
+                return node;
+            }
+
+            if (formula.charAt(i) == '*' || formula.charAt(i) == '/') {
                 Operation operation;
 
                 if (formula.charAt(i) == '*') {
@@ -94,22 +99,29 @@ public class Formula {
                     node.tryToPinToNode(tempNode);
                 }
 
-                char nextOperationSign = getNextOperation(formula, i);
+                char nextOperationSignOrBraces = getNextOperation(formula, i);
 
-                if (nextOperationSign == '*' || nextOperationSign == '/') {
-                    Value temp;
+                if (nextOperationSignOrBraces == '*' || nextOperationSignOrBraces == '/' || nextOperationSignOrBraces == '(') {
+                    Node temp;
 
                     if (isNextNodeWillVar(formula, i)) {
                         temp = getNextVariable(formula, ++i);
                         variables.add((Variable) temp);
                         i += ((Variable) temp).getVarLength();
+                    }
+                    else if (nextOperationSignOrBraces == '(') {
+                        i++;
+                        String braces = getBraces(formula, ++i);
+                        temp = getOperationFromBraces(braces);
+                        i += braces.length() + 1;
+
                     } else {
                         temp = getNextValue(formula, ++i);
-                        i += temp.getValueLength();
+                        i += ((Value) temp).getValueLength();
                     }
 
                     Operation operation;
-                    if (nextOperationSign == '*') {
+                    if (formula.charAt(i) == '*') {
                         operation = new Multiplication();
                     } else {
                         operation = new Division();
@@ -121,10 +133,19 @@ public class Formula {
                         Variable var = getNextVariable(formula, ++i);
                         operation.tryToPinToNode(var);
                         variables.add(var);
-                        i += ((Variable) temp).getVarLength();
+                        i += var.getVarLength();
+                    }
+                    else if (formula.charAt(i + 1) == '(') {
+                        i++;
+                        String braces = getBraces(formula, ++i);
+                        Node tempNode1 = getOperationFromBraces(braces);
+                        operation.tryToPinToNode(tempNode1);
+                        i += braces.length() + 1;
+
                     } else {
-                        operation.tryToPinToNode(getNextValue(formula, ++i));
-                        i += temp.getValueLength();
+                        Value value = getNextValue(formula, ++i);
+                        operation.tryToPinToNode(value);
+                        i += value.getValueLength();
                     }
 
                     node.tryToPinToNode(operation);
@@ -142,6 +163,7 @@ public class Formula {
     public double execute(int ... values) {
 
         int i = 0;
+
         for (Variable var: variables) {
             var.setValue(values[i++]);
         }
@@ -171,6 +193,7 @@ public class Formula {
         startingPoint++;
 
         for (; startingPoint < formula.length(); startingPoint++) {
+
             switch (formula.charAt(startingPoint)) {
                 case '*':
                     return '*';
@@ -180,6 +203,8 @@ public class Formula {
                     return '-';
                 case '/':
                     return '/';
+                case '(':
+                    return '(';
             }
         }
 
