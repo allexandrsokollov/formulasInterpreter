@@ -133,7 +133,7 @@ public class Formula {
                         Variable var = getNextVariable(formula, ++i);
                         operation.tryToPinToNode(var);
                         variables.add(var);
-                        i += var.getVarLength();
+                        i += var.getVarLength() - 1;
                     }
                     else if (formula.charAt(i + 1) == '(') {
                         i++;
@@ -145,7 +145,7 @@ public class Formula {
                     } else {
                         Value value = getNextValue(formula, ++i);
                         operation.tryToPinToNode(value);
-                        i += value.getValueLength();
+                        i += value.getValueLength() - 1;
                     }
 
                     node.tryToPinToNode(operation);
