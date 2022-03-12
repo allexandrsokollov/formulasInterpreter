@@ -2,7 +2,6 @@ package foormulasInterpreter;
 
 import foormulasInterpreter.Operations.*;
 
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -14,11 +13,11 @@ public class Formula {
         variables = new LinkedHashSet<>();
     }
 
-    public void prepare(String formula) {
+    public void prepare(String formula) throws Exception {
         mainNode = getOperationFromBraces(formula);
     }
 
-    private Operation getOperationFromBraces(String formula) {
+    private Operation getOperationFromBraces(String formula) throws Exception {
         formula = getStringWithoutSpaces(formula);
         Operation node = null;
         Node tempNode = null;
@@ -30,32 +29,26 @@ public class Formula {
                 tempNode = getOperationFromBraces(braces);
                 i += braces.length() + 1;
 
-                if (node != null) {
-                    if (!node.tryToPinToNode(tempNode)) {
-                        System.out.println("can't pin");
-                    }
-                }
+                tryToPinNodeToOperation(node, tempNode);
 
             } else if (formula.charAt(i) >= '0' && formula.charAt(i) <= '9') {
                 tempNode = getNextValue(formula, i);
                 i += ((Value) tempNode).getValueLength();
 
-                if (node != null) {
-                    if (!node.tryToPinToNode(tempNode)) {
-                        System.out.println("can't pin");
-                    }
-                }
+                tryToPinNodeToOperation(node, tempNode);
 
             } else if (formula.charAt(i) >= 'a' && formula.charAt(i) <= 'z') {
-                tempNode = getNextVariable(formula, i);
-                variables.add((Variable) tempNode);
+                Variable var = getNextVariable(formula, i);
+
+                if (variables.contains(var)) {
+                    tempNode = getVarFromVariables(var);
+                } else {
+                    tempNode = getNextVariable(formula, i);
+                    variables.add((Variable) tempNode);
+                }
                 i += ((Variable) tempNode).getVarLength();
 
-                if (node != null) {
-                    if (!node.tryToPinToNode(tempNode)) {
-                        System.out.println("can't pin");
-                    }
-                }
+                tryToPinNodeToOperation(node, tempNode);
             }
 
             if (i >= formula.length()) {
@@ -63,43 +56,22 @@ public class Formula {
             }
 
             if (formula.charAt(i) == '*' || formula.charAt(i) == '/') {
-                Operation operation;
 
                 if (formula.charAt(i) == '*') {
-                    operation = new Multiplication();
+                    node = getNewTopNodeWithNewOperation(node, new Multiplication(), tempNode);
                 } else {
-                    operation = new Division();
-                }
-
-                if (node != null) {
-                    Node tmp = node;
-                    operation.tryToPinToNode(tmp);
-                    node = operation;
-
-                } else {
-                    node = operation;
-                    node.tryToPinToNode(tempNode);
+                    node = getNewTopNodeWithNewOperation(node, new Division(), tempNode);
                 }
 
             } else if (formula.charAt(i) == '+' || formula.charAt(i) == '-') {
-                Operation tempOperation;
 
                 if (formula.charAt(i) == '+') {
-                    tempOperation = new Addition();
+                    node = getNewTopNodeWithNewOperation(node, new Addition(), tempNode);
                 } else {
-                    tempOperation = new Subtraction();
+                    node = getNewTopNodeWithNewOperation(node, new Subtraction(), tempNode);
                 }
 
-                if (node != null) {
-                    Node temp = node;
-                    tempOperation.tryToPinToNode(temp);
-                    node = tempOperation;
-                } else {
-                    node = tempOperation;
-                    node.tryToPinToNode(tempNode);
-                }
-
-                char nextOperationSignOrBraces = getNextOperation(formula, i);
+                char nextOperationSignOrBraces = getNextOperationOrBrace(formula, i);
 
                 if (nextOperationSignOrBraces == '*' || nextOperationSignOrBraces == '/' || nextOperationSignOrBraces == '(') {
                     Node temp;
@@ -120,19 +92,35 @@ public class Formula {
                         i += ((Value) temp).getValueLength();
                     }
 
+                    if (i >= formula.length()) {
+                        node.tryToPinToNode(temp);
+                        continue;
+                    }
+
                     Operation operation;
                     if (formula.charAt(i) == '*') {
                         operation = new Multiplication();
-                    } else {
+                    } else if (formula.charAt(i) == '/') {
                         operation = new Division();
+                    } else if (formula.charAt(i) == '+') {
+                        operation = new Addition();
+                    } else {
+                        operation = new Subtraction();
                     }
 
                     operation.tryToPinToNode(temp);
 
                     if (isNextNodeWillVar(formula, i)) {
                         Variable var = getNextVariable(formula, ++i);
+
+                        if (variables.contains(var)) {
+                            var = getVarFromVariables(var);
+                        } else {
+                            var = getNextVariable(formula, i);
+                            variables.add((Variable) tempNode);
+                        }
+
                         operation.tryToPinToNode(var);
-                        variables.add(var);
                         i += var.getVarLength() - 1;
                     }
                     else if (formula.charAt(i + 1) == '(') {
@@ -140,7 +128,7 @@ public class Formula {
                         String braces = getBraces(formula, ++i);
                         Node tempNode1 = getOperationFromBraces(braces);
                         operation.tryToPinToNode(tempNode1);
-                        i += braces.length() + 1;
+                        i += braces.length();
 
                     } else {
                         Value value = getNextValue(formula, ++i);
@@ -149,25 +137,48 @@ public class Formula {
                     }
 
                     node.tryToPinToNode(operation);
-
                 }
-
-
             }
         }
         return node;
     }
 
-
-
     public double execute(int ... values) {
-
         int i = 0;
 
         for (Variable var: variables) {
             var.setValue(values[i++]);
         }
         return ((Operation) mainNode).executeAndGetValue();
+    }
+
+    private Variable getVarFromVariables(Variable variable) {
+        for (Variable var : variables) {
+            if (var.equals(variable)) {
+                return var;
+            }
+        }
+        return null;
+    }
+
+    private Operation getNewTopNodeWithNewOperation(Operation mainNode, Operation newNode, Node tempNode) {
+        if (mainNode != null) {
+            Node temp = mainNode;
+            newNode.tryToPinToNode(temp);
+            mainNode = newNode;
+        } else {
+            mainNode = newNode;
+            mainNode.tryToPinToNode(tempNode);
+        }
+        return mainNode;
+    }
+
+    private void tryToPinNodeToOperation(Operation nodeToPin, Node nodeWillPinned) throws Exception {
+        if (nodeToPin != null) {
+            if (!nodeToPin.tryToPinToNode(nodeWillPinned)) {
+                throw new Exception("Can't pin node to Operation");
+            }
+        }
     }
 
     private boolean isNextNodeWillVar(String formula, int startingPoint) {
@@ -189,7 +200,7 @@ public class Formula {
      * @return '$' if nothing found
      * else returns next operation
      */
-    private char getNextOperation(String formula, int startingPoint) {
+    private char getNextOperationOrBrace(String formula, int startingPoint) {
         startingPoint++;
 
         for (; startingPoint < formula.length(); startingPoint++) {

@@ -22,5 +22,10 @@ public class Value extends Node{
         this.valueLength = String.valueOf(value).length();
     }
 
+    @Override
+    public String toString() {
+        return "value: " + getValue();
+    }
+
 
 }

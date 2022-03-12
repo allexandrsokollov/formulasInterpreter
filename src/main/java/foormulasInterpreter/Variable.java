@@ -26,4 +26,9 @@ public class Variable extends Value{
     public int hashCode() {
         return Objects.hash(varName);
     }
+
+    @Override
+    public String toString() {
+        return varName + "  value: " + getValue();
+    }
 }
